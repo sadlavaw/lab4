@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Форма залікової книжки студента</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif;
+            color: white;
+            padding: 20px;
+        }
+
+        .form-container {
+            padding: 30px;
+            border-radius: 10px;
+            width: 60%;
+            margin: 0 auto;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url("image.png");
+            background-size: cover; 
+            background-position: center; 
+            background-repeat: no-repeat; 
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h1>Форма залікової книжки</h1>
+        <form action="#" method="POST">
+            <div class="form-group">
+                <label for="fullName">ПІБ студента:</label>
+                <input type="text" id="fullName" name="fullName" required>
+            </div>
+            <div class="form-group">
+                <label for="studentID">Номер залікової книжки:</label>
+                <input type="text" id="studentID" name="studentID" required>
+            </div>
+            <div class="form-group">
+                <label for="faculty">Факультет:</label>
+                <input type="text" id="faculty" name="faculty" required>
+            </div>
+            <div class="form-group">
+                <label for="course">Курс:</label>
+                <input type="number" id="course" name="course" required>
+            </div>
+            <div class="form-group">
+                <label for="group">Група:</label>
+                <input type="text" id="group" name="group" required>
+            </div>
+            <button type="submit">Зберегти</button>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Форма залікової книжки студента</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: white;
+            padding: 20px;
+        }
+        .form-container {
+            padding: 30px;
+            border-radius: 10px;
+            width: 60%;
+            margin: 0 auto;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url("image.png");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .file-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .file-buttons button {
+            flex: 1;
+        }
+        .json-btn {
+            background-color: #ff9800;
+        }
+        .xml-btn {
+            background-color: #9c27b0;
+        }
+        .read-btn {
+            background-color: #2196F3;
+        }
+        .delete-btn {
+            background-color: #f44336;
+        }
+        #importContainer {
+            margin-top: 15px;
+        }
+        #importFile {
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            color: white;
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 5px;
+            display: none;
+            z-index: 1000;
+        }
+        .record-info {
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            display: none;
+        }
+        .record-info pre {
+            color: white;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <div class="notification" id="notification"></div>
+    <div class="form-container">
+        <h1>Форма залікової книжки</h1>
+        <form id="studentForm">
+            <div class="form-group">
+                <label for="fullName">ПІБ студента:</label>
+                <input type="text" id="fullName" name="fullName" required>
+            </div>
+            <div class="form-group">
+                <label for="studentID">Номер залікової книжки:</label>
+                <input type="text" id="studentID" name="studentID" required>
+            </div>
+            <div class="form-group">
+                <label for="faculty">Факультет:</label>
+                <input type="text" id="faculty" name="faculty" required>
+            </div>
+            <div class="form-group">
+                <label for="course">Курс:</label>
+                <input type="number" id="course" name="course" min="1" max="6" required>
+            </div>
+            <div class="form-group">
+                <label for="group">Група:</label>
+                <input type="text" id="group" name="group" required>
+            </div>
+            <button type="submit" id="saveButton">Зберегти</button>
+        </form>
+
+        <div class="file-buttons">
+            <button class="json-btn" id="exportJsonBtn">Зберегти в JSON</button>
+            <button class="xml-btn" id="exportXmlBtn">Зберегти в XML</button>
+            <button class="read-btn" id="readBtn">Зчитати дані</button>
+            <button class="delete-btn" id="deleteBtn">Видалити дані</button>
+        </div>
+
+        <div id="importContainer">
+            <input type="file" id="importFile" accept=".json,.xml">
+        </div>
+
+        <div class="record-info" id="recordInfo">
+            <h2>Зчитані дані</h2>
+            <pre id="recordData"></pre>
+        </div>
+    </div>
+
+    <script>
+        // Поточний запис студента
+        let currentStudentRecord = null;
+
+        // Функція для показу повідомлення
+        function showNotification(message, isSuccess = true) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.backgroundColor = isSuccess ? '#4CAF50' : '#f44336';
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        // Функція для створення запису з форми
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            
+            currentStudentRecord = {
+                fullName: document.getElementById('fullName').value,
+                studentID: document.getElementById('studentID').value,
+                faculty: document.getElementById('faculty').value,
+                course: document.getElementById('course').value,
+                group: document.getElementById('group').value,
+                dateCreated: new Date().toISOString()
+            };
+            
+            // Зберігаємо дані в localStorage
+            localStorage.setItem('currentStudentRecord', JSON.stringify(currentStudentRecord));
+            showNotification('Дані успішно збережено! Тепер ви можете експортувати їх у файл.');
+        }
+
+        // Функція для експорту в JSON
+        function exportToJson() {
+            if (!currentStudentRecord) {
+                const savedRecord = localStorage.getItem('currentStudentRecord');
+                if (savedRecord) {
+                    currentStudentRecord = JSON.parse(savedRecord);
+                } else {
+                    showNotification('Немає даних для збереження! Спочатку заповніть форму.', false);
+                    return;
+                }
+            }
+
+            const jsonData = JSON.stringify(currentStudentRecord, null, 2);
+            const blob = new Blob([jsonData], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `student_${currentStudentRecord.studentID}.json`;
+            document.body.appendChild(a);
+            a.click();
+            
+            setTimeout(() => {
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            }, 0);
+            
+            showNotification('Дані збережено в JSON файл!');
+        }
+
+        // Функція для експорту в XML
+        function exportToXml() {
+            if (!currentStudentRecord) {
+                const savedRecord = localStorage.getItem('currentStudentRecord');
+                if (savedRecord) {
+                    currentStudentRecord = JSON.parse(savedRecord);
+                } else {
+                    showNotification('Немає даних для збереження! Спочатку заповніть форму.', false);
+                    return;
+                }
+            }
+
+            let xmlContent = '<?xml version="1.0" encoding="UTF-8"?>\n';
+            xmlContent += '<studentRecord>\n';
+            
+            for (const [key, value] of Object.entries(currentStudentRecord)) {
+                xmlContent += `  <${key}>${escapeXml(value.toString())}</${key}>\n`;
+            }
+            
+            xmlContent += '</studentRecord>';
+            
+            const blob = new Blob([xmlContent], { type: 'application/xml' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `student_${currentStudentRecord.studentID}.xml`;
+            document.body.appendChild(a);
+            a.click();
+            
+            setTimeout(() => {
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            }, 0);
+            
+            showNotification('Дані збережено в XML файл!');
+        }
+
+        // Функція для екранування спеціальних символів в XML
+        function escapeXml(unsafe) {
+            return unsafe.replace(/[<>&'"]/g, function (c) {
+                switch (c) {
+                    case '<': return '&lt;';
+                    case '>': return '&gt;';
+                    case '&': return '&amp;';
+                    case '\'': return '&apos;';
+                    case '"': return '&quot;';
+                }
+            });
+        }
+
+        // Функція для зчитування даних з файлу
+        function readFile() {
+            const fileInput = document.getElementById('importFile');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showNotification('Будь ласка, виберіть файл!', false);
+                return;
+            }
+            
+            const fileReader = new FileReader();
+            
+            fileReader.onload = function(event) {
+                const fileContent = event.target.result;
+                const recordInfo = document.getElementById('recordInfo');
+                const recordData = document.getElementById('recordData');
+                
+                try {
+                    if (file.name.endsWith('.json')) {
+                        // Читання JSON
+                        const importedData = JSON.parse(fileContent);
+                        currentStudentRecord = importedData;
+                        recordData.textContent = JSON.stringify(importedData, null, 2);
+                        recordInfo.style.display = 'block';
+                        fillFormFromData(importedData);
+                        showNotification('Дані успішно зчитано з JSON!');
+                    } else if (file.name.endsWith('.xml')) {
+                        // Читання XML
+                        const parser = new DOMParser();
+                        const xmlDoc = parser.parseFromString(fileContent, "text/xml");
+                        
+                        const tags = xmlDoc.getElementsByTagName('*');
+                        const importedData = {};
+                        
+                        for (let i = 1; i < tags.length; i++) { // Починаємо з 1, щоб пропустити кореневий елемент
+                            const tag = tags[i];
+                            if (tag.parentNode.nodeName === 'studentRecord') {
+                                importedData[tag.nodeName] = tag.textContent;
+                            }
+                        }
+                        
+                        if (Object.keys(importedData).length > 0) {
+                            currentStudentRecord = importedData;
+                            recordData.textContent = JSON.stringify(importedData, null, 2);
+                            recordInfo.style.display = 'block';
+                            fillFormFromData(importedData);
+                            showNotification('Дані успішно зчитано з XML!');
+                        } else {
+                            throw new Error('Неправильний формат XML або немає даних');
+                        }
+                    } else {
+                        throw new Error('Непідтримуваний формат файлу');
+                    }
+                    
+                    // Зберігаємо в localStorage
+                    localStorage.setItem('currentStudentRecord', JSON.stringify(currentStudentRecord));
+                } catch (error) {
+                    showNotification(`Помилка читання: ${error.message}`, false);
+                }
+                
+                // Скидаємо поле вибору файлу
+                fileInput.value = '';
+            };
+            
+            fileReader.onerror = function() {
+                showNotification('Помилка читання файлу!', false);
+            };
+            
+            if (file.name.endsWith('.json') || file.name.endsWith('.xml')) {
+                fileReader.readAsText(file);
+            } else {
+                showNotification('Підтримуються лише файли .json та .xml!', false);
+            }
+        }
+
+        // Заповнення форми з отриманих даних
+        function fillFormFromData(data) {
+            if (data.fullName) document.getElementById('fullName').value = data.fullName;
+            if (data.studentID) document.getElementById('studentID').value = data.studentID;
+            if (data.faculty) document.getElementById('faculty').value = data.faculty;
+            if (data.course) document.getElementById('course').value = data.course;
+            if (data.group) document.getElementById('group').value = data.group;
+        }
+
+        // Видалення даних
+        function deleteData() {
+            if (confirm('Ви дійсно хочете видалити поточні дані?')) {
+                localStorage.removeItem('currentStudentRecord');
+                currentStudentRecord = null;
+                document.getElementById('studentForm').reset();
+                document.getElementById('recordInfo').style.display = 'none';
+                showNotification('Дані видалено!', false);
+            }
+        }
+
+        // Ініціалізація додатку
+        function initApp() {
+            // Завантаження даних з localStorage
+            const savedRecord = localStorage.getItem('currentStudentRecord');
+            if (savedRecord) {
+                currentStudentRecord = JSON.parse(savedRecord);
+                fillFormFromData(currentStudentRecord);
+            }
+            
+            // Додавання обробників подій
+            document.getElementById('studentForm').addEventListener('submit', handleFormSubmit);
+            document.getElementById('exportJsonBtn').addEventListener('click', exportToJson);
+            document.getElementById('exportXmlBtn').addEventListener('click', exportToXml);
+            document.getElementById('readBtn').addEventListener('click', readFile);
+            document.getElementById('deleteBtn').addEventListener('click', deleteData);
+        }
+
+        // Запуск додатку після завантаження DOM
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
