@@ -155,10 +155,10 @@
     </div>
 
     <script>
-        // Поточний запис студента
+
         let currentStudentRecord = null;
 
-        // Функція для показу повідомлення
+
         function showNotification(message, isSuccess = true) {
             const notification = document.getElementById('notification');
             notification.textContent = message;
@@ -170,7 +170,7 @@
             }, 3000);
         }
 
-        // Функція для створення запису з форми
+
         function handleFormSubmit(event) {
             event.preventDefault();
             
@@ -183,12 +183,10 @@
                 dateCreated: new Date().toISOString()
             };
             
-            // Зберігаємо дані в localStorage
+
             localStorage.setItem('currentStudentRecord', JSON.stringify(currentStudentRecord));
             showNotification('Дані успішно збережено! Тепер ви можете експортувати їх у файл.');
         }
-
-        // Функція для експорту в JSON
         function exportToJson() {
             if (!currentStudentRecord) {
                 const savedRecord = localStorage.getItem('currentStudentRecord');
@@ -218,7 +216,6 @@
             showNotification('Дані збережено в JSON файл!');
         }
 
-        // Функція для експорту в XML
         function exportToXml() {
             if (!currentStudentRecord) {
                 const savedRecord = localStorage.getItem('currentStudentRecord');
@@ -256,7 +253,6 @@
             showNotification('Дані збережено в XML файл!');
         }
 
-        // Функція для екранування спеціальних символів в XML
         function escapeXml(unsafe) {
             return unsafe.replace(/[<>&'"]/g, function (c) {
                 switch (c) {
@@ -269,7 +265,6 @@
             });
         }
 
-        // Функція для зчитування даних з файлу
         function readFile() {
             const fileInput = document.getElementById('importFile');
             const file = fileInput.files[0];
@@ -288,7 +283,6 @@
                 
                 try {
                     if (file.name.endsWith('.json')) {
-                        // Читання JSON
                         const importedData = JSON.parse(fileContent);
                         currentStudentRecord = importedData;
                         recordData.textContent = JSON.stringify(importedData, null, 2);
@@ -296,14 +290,14 @@
                         fillFormFromData(importedData);
                         showNotification('Дані успішно зчитано з JSON!');
                     } else if (file.name.endsWith('.xml')) {
-                        // Читання XML
+
                         const parser = new DOMParser();
                         const xmlDoc = parser.parseFromString(fileContent, "text/xml");
                         
                         const tags = xmlDoc.getElementsByTagName('*');
                         const importedData = {};
                         
-                        for (let i = 1; i < tags.length; i++) { // Починаємо з 1, щоб пропустити кореневий елемент
+                        for (let i = 1; i < tags.length; i++) {
                             const tag = tags[i];
                             if (tag.parentNode.nodeName === 'studentRecord') {
                                 importedData[tag.nodeName] = tag.textContent;
@@ -323,13 +317,11 @@
                         throw new Error('Непідтримуваний формат файлу');
                     }
                     
-                    // Зберігаємо в localStorage
                     localStorage.setItem('currentStudentRecord', JSON.stringify(currentStudentRecord));
                 } catch (error) {
                     showNotification(`Помилка читання: ${error.message}`, false);
                 }
                 
-                // Скидаємо поле вибору файлу
                 fileInput.value = '';
             };
             
@@ -344,7 +336,6 @@
             }
         }
 
-        // Заповнення форми з отриманих даних
         function fillFormFromData(data) {
             if (data.fullName) document.getElementById('fullName').value = data.fullName;
             if (data.studentID) document.getElementById('studentID').value = data.studentID;
@@ -353,7 +344,6 @@
             if (data.group) document.getElementById('group').value = data.group;
         }
 
-        // Видалення даних
         function deleteData() {
             if (confirm('Ви дійсно хочете видалити поточні дані?')) {
                 localStorage.removeItem('currentStudentRecord');
@@ -364,16 +354,13 @@
             }
         }
 
-        // Ініціалізація додатку
         function initApp() {
-            // Завантаження даних з localStorage
             const savedRecord = localStorage.getItem('currentStudentRecord');
             if (savedRecord) {
                 currentStudentRecord = JSON.parse(savedRecord);
                 fillFormFromData(currentStudentRecord);
             }
             
-            // Додавання обробників подій
             document.getElementById('studentForm').addEventListener('submit', handleFormSubmit);
             document.getElementById('exportJsonBtn').addEventListener('click', exportToJson);
             document.getElementById('exportXmlBtn').addEventListener('click', exportToXml);
@@ -381,7 +368,6 @@
             document.getElementById('deleteBtn').addEventListener('click', deleteData);
         }
 
-        // Запуск додатку після завантаження DOM
         document.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
